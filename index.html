@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a3a52">
+    <meta name="description" content="Generate QR code barcodes for student ID cards at PM SHRI KV Hinoo">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Barcode Generator">
+    
+    <title>Student Barcode Generator</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%231a3a52' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' font-size='80' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='Arial'%3E📱%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%231a3a52' width='192' height='192' rx='45'/%3E%3Ctext x='50%25' y='50%25' font-size='80' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='Arial'%3E📱%3C/text%3E%3C/svg%3E">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a3a52;
+            --secondary: #2d5a7b;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --neutral-light: #ecf0f1;
+            --neutral-dark: #2c3e50;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555;
+            --border: #bdc3c7;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .install-banner {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 20px;
+            margin: 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .install-banner button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .install-banner button:hover {
+            transform: scale(1.05);
+        }
+
+        .install-banner button.dismiss {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            padding: 40px;
+            align-items: start;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .header {
+                padding: 20px;
+            }
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        select {
+            padding: 12px 14px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="file"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 58, 82, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--accent);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-secondary:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .qr-preview {
+            background: var(--neutral-light);
+            padding: 20px;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            min-height: 300px;
+            justify-content: center;
+            border: 2px dashed var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .qr-preview.active {
+            background: white;
+            border-color: var(--primary);
+            border-style: solid;
+        }
+
+        #qrcode {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .student-info {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .student-info strong {
+            color: var(--text-primary);
+            display: block;
+            margin-top: 8px;
+        }
+
+        .csv-info {
+            background: var(--neutral-light);
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .csv-info code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: var(--accent);
+        }
+
+        .batch-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .batch-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            transition: background 0.2s ease;
+        }
+
+        .batch-item:hover {
+            background: var(--neutral-light);
+        }
+
+        .batch-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .student-class {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            background: var(--success);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+            transform: translateY(2px);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .offline-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f39c12;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .offline-indicator.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+    <div class="install-banner" id="installBanner">
+        <span>📱 Install this app on your home screen for quick access!</span>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="installApp()">Install</button>
+            <button class="dismiss" onclick="dismissInstall()">Not now</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📱 Student Barcode Generator</h1>
+            <p>PM SHRI Kendriya Vidyalaya Hinoo | Generate QR Codes for Library ID Cards</p>
+        </div>
+
+        <div class="content">
+            <!-- Left Column: Input -->
+            <div class="section">
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('manual')">Manual Entry</button>
+                    <button class="tab-btn" onclick="switchTab('batch')">Batch Upload</button>
+                </div>
+
+                <!-- Manual Entry Tab -->
+                <div id="manual" class="tab-content active">
+                    <div class="form-group">
+                        <label for="admission">Admission Number</label>
+                        <input type="text" id="admission" placeholder="e.g., A001">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="e.g., Raj Kumar Singh">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="class">Class</label>
+                        <select id="class">
+                            <option value="">Select Class</option>
+                            <option value="XI">XI</option>
+                            <option value="XII">XII</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="section">Section</label>
+                        <select id="section">
+                            <option value="">Select Section</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="generateSingle()">Generate QR Code</button>
+                        <button class="btn-secondary btn-small" onclick="downloadSingle()">Download</button>
+                    </div>
+
+                    <div id="message" class="message"></div>
+                </div>
+
+                <!-- Batch Upload Tab -->
+                <div id="batch" class="tab-content">
+                    <div class="csv-info">
+                        <strong>CSV Format Required:</strong>
+                        <p>Your CSV file should have these columns (in order):</p>
+                        <code>admission_number,full_name,class,section</code>
+                        <p style="margin-top: 10px;">Example:</p>
+                        <code>A001,Raj Kumar,XI,A</code><br>
+                        <code>A002,Priya Singh,XI,A</code>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="csvFile">Upload CSV File</label>
+                        <input type="file" id="csvFile" accept=".csv">
+                    </div>
+
+                    <button class="btn-primary" onclick="processCSV()">Process CSV & Generate All</button>
+
+                    <div id="batchMessage" class="message"></div>
+
+                    <div id="batchListContainer" style="display: none;">
+                        <strong style="color: var(--primary); display: block; margin-bottom: 10px;">Generated Barcodes:</strong>
+                        <div class="batch-list" id="batchList"></div>
+                        <button class="btn-success" style="margin-top: 15px;" onclick="downloadAllZip()">Download All as ZIP</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Preview -->
+            <div class="section">
+                <div class="section-title">Preview</div>
+                <div class="qr-preview" id="qrPreview">
+                    <p style="color: var(--text-secondary); text-align: center;">Enter student details to generate QR code</p>
+                </div>
+                <div id="studentInfo" class="student-info" style="display: none;">
+                    <strong id="infoAdmission"></strong>
+                    <strong id="infoName"></strong>
+                    <strong id="infoClass"></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="offline-indicator" id="offlineIndicator">
+        ⚠️ Offline Mode (Local QR Generation)
+    </div>
+
+    <script>
+        // PWA Installation
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallBanner();
+        });
+
+        function showInstallBanner() {
+            document.getElementById('installBanner').classList.add('show');
+        }
+
+        function dismissInstall() {
+            document.getElementById('installBanner').classList.remove('show');
+        }
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        showMessage('App installed successfully!', 'success', 'message');
+                        dismissInstall();
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
+                const CACHE_NAME = 'barcode-generator-v1';
+                const urlsToCache = [
+                    '/',
+                    '/index.html'
+                ];
+
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => {
+                            return cache.addAll(urlsToCache).catch(() => {
+                                console.log('Cache some assets');
+                            });
+                        })
+                    );
+                    self.skipWaiting();
+                });
+
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((cacheNames) => {
+                            return Promise.all(
+                                cacheNames.map((cacheName) => {
+                                    if (cacheName !== CACHE_NAME) {
+                                        return caches.delete(cacheName);
+                                    }
+                                })
+                            );
+                        })
+                    );
+                    self.clients.claim();
+                });
+
+                self.addEventListener('fetch', (event) => {
+                    if (event.request.method !== 'GET') {
+                        return;
+                    }
+
+                    event.respondWith(
+                        caches.match(event.request).then((response) => {
+                            if (response) {
+                                return response;
+                            }
+                            return fetch(event.request).then((response) => {
+                                if (!response || response.status !== 200 || response.type === 'error') {
+                                    return response;
+                                }
+                                const responseToCache = response.clone();
+                                caches.open(CACHE_NAME).then((cache) => {
+                                    cache.put(event.request, responseToCache);
+                                });
+                                return response;
+                            }).catch(() => {
+                                return caches.match('/');
+                            });
+                        })
+                    );
+                });
+            `)).then((reg) => {
+                console.log('Service Worker registered');
+            }).catch((err) => {
+                console.log('Service Worker registration failed:', err);
+            });
+        }
+
+        // Online/Offline Detection
+        function updateOnlineStatus() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (!navigator.onLine) {
+                indicator.classList.add('show');
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+
+        // App Logic
+        let currentQRData = null;
+        let batchStudents = [];
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function generateQRCode(data) {
+            const qrPreview = document.getElementById('qrPreview');
+            qrPreview.innerHTML = '';
+
+            const qrcode = new QRCode(qrPreview, {
+                text: data,
+                width: 200,
+                height: 200,
+                colorDark: '#1a3a52',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            return qrPreview.querySelector('canvas');
+        }
+
+        function generateSingle() {
+            const admission = document.getElementById('admission').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const klass = document.getElementById('class').value;
+            const section = document.getElementById('section').value;
+            const messageEl = document.getElementById('message');
+
+            if (!admission || !name || !klass || !section) {
+                showMessage('Please fill in all fields', 'error', 'message');
+                return;
+            }
+
+            const qrData = `ADM:${admission}|NAME:${name}|CLASS:${klass}|SECTION:${section}`;
+            currentQRData = { admission, name, klass, section, qrData };
+
+            generateQRCode(qrData);
+
+            const preview = document.getElementById('qrPreview');
+            preview.classList.add('active');
+
+            document.getElementById('infoAdmission').textContent = `Admission: ${admission}`;
+            document.getElementById('infoName').textContent = `${name}`;
+            document.getElementById('infoClass').textContent = `Class ${klass} - Section ${section}`;
+            document.getElementById('studentInfo').style.display = 'block';
+
+            showMessage('QR Code generated successfully!', 'success', 'message');
+        }
+
+        function downloadSingle() {
+            if (!currentQRData) {
+                showMessage('Generate a QR code first', 'error', 'message');
+                return;
+            }
+
+            const canvas = document.querySelector('#qrPreview canvas');
+            if (!canvas) return;
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `Barcode_${currentQRData.admission}_${currentQRData.name.replace(/\s+/g, '_')}.png`;
+            link.click();
+        }
+
+        function processCSV() {
+            const csvFile = document.getElementById('csvFile');
+            const messageEl = document.getElementById('batchMessage');
+
+            if (!csvFile.files.length) {
+                showMessage('Please select a CSV file', 'error', 'batchMessage');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const csv = e.target.result;
+                    const lines = csv.trim().split('\n');
+                    
+                    if (lines.length < 2) {
+                        showMessage('CSV file is empty or has no data rows', 'error', 'batchMessage');
+                        return;
+                    }
+
+                    batchStudents = [];
+                    let errors = [];
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const [admission, name, klass, section] = lines[i].split(',').map(s => s.trim());
+
+                        if (!admission || !name || !klass || !section) {
+                            errors.push(`Row ${i + 1}: Missing required fields`);
+                            continue;
+                        }
+
+                        batchStudents.push({ admission, name, klass, section });
+                    }
+
+                    if (errors.length > 0) {
+                        showMessage(`Processed with ${errors.length} error(s). ${errors.join(' | ')}`, 'error', 'batchMessage');
+                    }
+
+                    showMessage(`Successfully loaded ${batchStudents.length} students`, 'success', 'batchMessage');
+                    displayBatchList();
+                } catch (err) {
+                    showMessage('Error parsing CSV file: ' + err.message, 'error', 'batchMessage');
+                }
+            };
+            reader.readAsText(csvFile);
+        }
+
+        function displayBatchList() {
+            const batchListEl = document.getElementById('batchList');
+            batchListEl.innerHTML = '';
+
+            batchStudents.forEach((student, idx) => {
+                const div = document.createElement('div');
+                div.className = 'batch-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-class">Adm: ${student.admission} | Class ${student.klass} - ${student.section}</div>
+                    </div>
+                    <div class="status-badge">Ready</div>
+                `;
+                batchListEl.appendChild(div);
+            });
+
+            document.getElementById('batchListContainer').style.display = 'block';
+        }
+
+        async function downloadAllZip() {
+            if (batchStudents.length === 0) {
+                showMessage('No students to download', 'error', 'batchMessage');
+                return;
+            }
+
+            const zip = new JSZip();
+            let processed = 0;
+
+            for (const student of batchStudents) {
+                const qrData = `ADM:${student.admission}|NAME:${student.name}|CLASS:${student.klass}|SECTION:${student.section}`;
+                
+                const tempDiv = document.createElement('div');
+                const qrcode = new QRCode(tempDiv, {
+                    text: qrData,
+                    width: 200,
+                    height: 200,
+                    colorDark: '#1a3a52',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const canvas = tempDiv.querySelector('canvas');
+                const imageData = canvas.toDataURL('image/png').split(',')[1];
+                
+                const filename = `Barcode_${student.admission}_${student.name.replace(/\s+/g, '_')}.png`;
+                zip.file(filename, imageData, { base64: true });
+                
+                processed++;
+            }
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Student_Barcodes.zip';
+            link.click();
+
+            showMessage(`Downloaded ${processed} barcodes as ZIP file`, 'success', 'batchMessage');
+        }
+
+        function showMessage(msg, type, elementId) {
+            const el = document.getElementById(elementId);
+            el.textContent = msg;
+            el.className = `message show ${type}`;
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    el.classList.remove('show');
+                }, 4000);
+            }
+        }
+
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && document.getElementById('manual').classList.contains('active')) {
+                generateSingle();
+            }
+        });
+    </script>
+</body>
+</html>

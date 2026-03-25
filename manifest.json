@@ -1,0 +1,62 @@
+{
+  "name": "Student Barcode Generator - PM SHRI KV Hinoo",
+  "short_name": "Barcode Generator",
+  "description": "Generate QR code barcodes for student ID cards and library tracking",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1a3a52",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%231a3a52' width='192' height='192'/%3E%3Ctext x='50%25' y='50%25' font-size='80' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='Arial'%3E📱%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%231a3a52' width='512' height='512'/%3E%3Ctext x='50%25' y='50%25' font-size='250' font-weight='bold' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='Arial'%3E📱%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'%3E%3Crect fill='%231a3a52' width='540' height='720'/%3E%3Ctext x='50%25' y='360' font-size='100' text-anchor='middle' dominant-baseline='middle' fill='white' font-family='Arial'%3EBarcode Generator%3C/text%3E%3C/svg%3E",
+      "sizes": "540x720",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Generate Barcode",
+      "short_name": "Generate",
+      "description": "Quickly generate a student barcode",
+      "url": "/?mode=manual",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect fill='%231a3a52' width='96' height='96'/%3E%3Ctext x='50%25' y='50%25' font-size='50' text-anchor='middle' dominant-baseline='middle' fill='white'%3E📱%3C/text%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Batch Upload",
+      "short_name": "Batch",
+      "description": "Upload CSV and generate multiple barcodes",
+      "url": "/?mode=batch",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Crect fill='%231a3a52' width='96' height='96'/%3E%3Ctext x='50%25' y='50%25' font-size='50' text-anchor='middle' dominant-baseline='middle' fill='white'%3E📊%3C/text%3E%3C/svg%3E",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
