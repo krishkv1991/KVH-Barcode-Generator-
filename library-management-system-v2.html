@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a3a52">
+    <meta name="description" content="Library Management System - PM SHRI KV Hinoo">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Library Manager">
+    
+    <title>Library Management System - PM SHRI KV Hinoo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.20.0/umd/index.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a3a52;
+            --secondary: #2d5a7b;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #c0392b;
+            --neutral-light: #ecf0f1;
+            --neutral-dark: #2c3e50;
+            --text-primary: #1a1a1a;
+            --text-secondary: #555;
+            --border: #bdc3c7;
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100%;
+            padding: 20px;
+            background: white;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 8px;
+            padding: 40px 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h2 {
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .login-box p {
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .user-select {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .user-btn {
+            padding: 15px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            color: var(--text-primary);
+        }
+
+        .user-btn:hover {
+            background: var(--neutral-light);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .user-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pin-input {
+            margin: 20px 0;
+        }
+
+        .pin-input input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .pin-input input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .login-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .login-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            background: white;
+            padding: 0 15px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--accent);
+            transform: translateY(2px);
+        }
+
+        .user-info {
+            padding: 10px 15px;
+            background: var(--neutral-light);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #a93226;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="file"],
+        select,
+        textarea {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="file"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 58, 82, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 58, 82, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-warning:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            flex: none;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4/3;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 10px auto;
+        }
+
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .result-box {
+            background: var(--neutral-light);
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 4px solid var(--success);
+        }
+
+        .result-box strong {
+            color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background: var(--neutral-light);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-borrowed {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-overdue {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-returned {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: none;
+        }
+
+        .search-results.show {
+            display: block;
+        }
+
+        .search-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .search-item:hover {
+            background: var(--neutral-light);
+        }
+
+        .search-item:last-child {
+            border-bottom: none;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 8px 15px;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.75rem;
+            }
+
+            .tab-content {
+                padding: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN SCREEN -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h2>📚 Library Manager</h2>
+            <p>PM SHRI KV Hinoo</p>
+            
+            <div class="form-group">
+                <label>Select User</label>
+                <div class="user-select" id="userSelect"></div>
+            </div>
+
+            <div class="pin-input">
+                <label>Enter PIN</label>
+                <input type="password" id="pinInput" placeholder="Enter 4-digit PIN" maxlength="4">
+            </div>
+
+            <button class="login-btn" onclick="login()">Login</button>
+            <div class="message" id="loginMessage"></div>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div class="container" id="appContainer" style="display: none;">
+        <div class="header">
+            <h1>📚 Library Management System</h1>
+            <p>PM SHRI Kendriya Vidyalaya Hinoo | Student ID & Library Management</p>
+        </div>
+
+        <div class="user-info">
+            <span id="userDisplay"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('barcode', this)">📱 Barcode Generator</button>
+            <button class="tab-btn" onclick="switchTab('library', this)">📖 Library Manager</button>
+            <button class="tab-btn" onclick="switchTab('data', this)">💾 Data Management</button>
+        </div>
+
+        <!-- TAB 1: BARCODE GENERATOR -->
+        <div class="tab-content active" id="barcode">
+            <div class="section">
+                <div class="section-title">Generate Student Barcodes</div>
+                
+                <div class="mode-buttons">
+                    <button class="mode-btn active" onclick="switchBarcodeMode('manual')" id="manualModeBtn">Manual Entry</button>
+                    <button class="mode-btn" onclick="switchBarcodeMode('batch')" id="batchModeBtn">Excel Batch Upload</button>
+                </div>
+
+                <div id="manualMode">
+                    <div class="form-group">
+                        <label>Admission Number</label>
+                        <input type="text" id="admission" placeholder="e.g., A001">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Student Name</label>
+                        <input type="text" id="studentName" placeholder="e.g., Raj Kumar">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Class</label>
+                        <select id="class">
+                            <option value="">Select Class</option>
+                            <option value="I">I</option>
+                            <option value="II">II</option>
+                            <option value="III">III</option>
+                            <option value="IV">IV</option>
+                            <option value="V">V</option>
+                            <option value="VI">VI</option>
+                            <option value="VII">VII</option>
+                            <option value="VIII">VIII</option>
+                            <option value="IX">IX</option>
+                            <option value="X">X</option>
+                            <option value="XI">XI</option>
+                            <option value="XII">XII</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Section</label>
+                        <select id="section">
+                            <option value="">Select Section</option>
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                            <option value="E">E</option>
+                            <option value="HUMANITIES">HUMANITIES</option>
+                            <option value="SCIENCE">SCIENCE</option>
+                            <option value="COMMERCE">COMMERCE</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="generateQRCode()">Generate QR Code</button>
+                        <button class="btn-success btn-small" onclick="downloadBarcode()">Download</button>
+                    </div>
+
+                    <div id="barcodePreview" style="text-align: center; padding: 20px; background: var(--neutral-light); border-radius: 4px; display: none;">
+                        <div id="qrcode" style="margin: 0 auto;"></div>
+                        <div id="barcodeInfo" style="margin-top: 15px; font-size: 0.9rem; color: var(--text-secondary);"></div>
+                    </div>
+                </div>
+
+                <div id="batchMode" style="display: none;">
+                    <div class="form-group">
+                        <label>Upload Excel File</label>
+                        <input type="file" id="excelFile" accept=".xlsx,.xlsm,.xls">
+                    </div>
+
+                    <div style="background: var(--neutral-light); padding: 12px; border-radius: 4px; font-size: 0.85rem; margin: 10px 0;">
+                        <strong>Excel Format:</strong><br>
+                        Column A: admission_number<br>
+                        Column B: full_name<br>
+                        Column C: class<br>
+                        Column D: section<br><br>
+                        <strong>Example:</strong><br>
+                        A001 | Raj Kumar | I | A<br>
+                        A002 | Priya Singh | II | SCIENCE
+                    </div>
+
+                    <button class="btn-primary" onclick="processExcelBatch()">Process & Generate All</button>
+
+                    <div id="batchList" style="margin-top: 20px; display: none;">
+                        <strong style="color: var(--primary);">Generated Barcodes:</strong>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Class</th>
+                                    <th>Section</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchTableBody"></tbody>
+                        </table>
+                        <button class="btn-success" onclick="downloadAllBarcodes()">Download All as ZIP</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="barcodeMessage" class="message"></div>
+        </div>
+
+        <!-- TAB 2: LIBRARY MANAGER -->
+        <div class="tab-content" id="library">
+            <div style="display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;">
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('scan')">📷 Scan</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('issue')">📤 Issue</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('return')">📥 Return</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('search')">🔍 Search</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('history')">📋 History</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('overdue')">⚠️ Overdue</button>
+                <button class="btn-primary btn-small" onclick="switchLibraryMode('reports')">📊 Reports</button>
+            </div>
+
+            <!-- SCAN MODE -->
+            <div id="scanMode" style="display: none;">
+                <div class="section-title">Scan Student Barcode</div>
+                <div class="video-container">
+                    <video id="video" style="display: none;"></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                </div>
+                <button class="btn-primary" onclick="startScanning()">Start Camera</button>
+                <button class="btn-warning btn-small" onclick="stopScanning()" style="display: none;" id="stopScanBtn">Stop</button>
+                <div id="scanResult" class="result-box" style="display: none; margin-top: 15px;"></div>
+            </div>
+
+            <!-- ISSUE MODE -->
+            <div id="issueMode" style="display: none;">
+                <div class="section-title">Issue Book to Student</div>
+                
+                <div class="form-group">
+                    <label>Student ID (Scanned or Manual)</label>
+                    <input type="text" id="issueStudentId" placeholder="Auto-filled from scan">
+                </div>
+
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <input type="text" id="issueStudentName" readonly style="background: var(--neutral-light);">
+                </div>
+
+                <div class="form-group">
+                    <label>Search Book</label>
+                    <input type="text" id="bookSearch" placeholder="Type book title or ID" oninput="searchBooks()">
+                    <div id="bookSearchResults" class="search-results"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Selected Book</label>
+                    <input type="text" id="issueBookId" readonly style="background: var(--neutral-light);">
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="issueDueDate" readonly style="background: var(--neutral-light);">
+                </div>
+
+                <button class="btn-success" onclick="issueBook()">Issue Book</button>
+                <div id="issueMessage" class="message"></div>
+            </div>
+
+            <!-- RETURN MODE -->
+            <div id="returnMode" style="display: none;">
+                <div class="section-title">Return Book</div>
+                
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" id="returnStudentId" placeholder="Enter or scan">
+                </div>
+
+                <div class="form-group">
+                    <label>Book ID</label>
+                    <input type="text" id="returnBookId" placeholder="Enter book ID">
+                </div>
+
+                <button class="btn-success" onclick="returnBook()">Mark as Returned</button>
+                <div id="returnMessage" class="message"></div>
+                <div id="returnResult" class="result-box" style="display: none; margin-top: 15px;"></div>
+            </div>
+
+            <!-- SEARCH MODE -->
+            <div id="searchMode" style="display: none;">
+                <div class="section-title">Search Books & Students</div>
+                
+                <div class="form-group">
+                    <label>Search by Title or ID</label>
+                    <input type="text" id="globalSearch" placeholder="Type to search...">
+                </div>
+
+                <div id="globalSearchResults" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- HISTORY MODE -->
+            <div id="historyMode" style="display: none;">
+                <div class="section-title">Student Borrowing History</div>
+                
+                <div class="form-group">
+                    <label>Student ID</label>
+                    <input type="text" id="historyStudentId" placeholder="Enter student ID">
+                    <button class="btn-primary btn-small" onclick="showStudentHistory()">Search</button>
+                </div>
+
+                <div id="historyResult" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- OVERDUE MODE -->
+            <div id="overdueMode" style="display: none;">
+                <div class="section-title">Overdue Books Tracker</div>
+                
+                <button class="btn-primary" onclick="showOverdueBooks()">Show All Overdue Books</button>
+                <div id="overdueResult" style="margin-top: 20px;"></div>
+            </div>
+
+            <!-- REPORTS MODE -->
+            <div id="reportsMode" style="display: none;">
+                <div class="section-title">Generate Reports</div>
+                
+                <div class="form-group">
+                    <label>Report Type</label>
+                    <select id="reportType">
+                        <option value="">Select Report</option>
+                        <option value="issued">Books Issued (All Time)</option>
+                        <option value="overdue">Overdue Books</option>
+                        <option value="returned">Returned Books</option>
+                        <option value="student">Books by Student</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date Range (Optional)</label>
+                    <input type="date" id="reportStartDate">
+                    <input type="date" id="reportEndDate">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="generatePDFReport()">Generate PDF</button>
+                    <button class="btn-success" onclick="generateExcelReport()">Generate Excel</button>
+                </div>
+            </div>
+
+            <div id="libraryMessage" class="message"></div>
+        </div>
+
+        <!-- TAB 3: DATA MANAGEMENT -->
+        <div class="tab-content" id="data">
+            <div class="section">
+                <div class="section-title">Data Management</div>
+
+                <div style="background: var(--neutral-light); padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">📚 Import Book Database</h3>
+                    <p style="font-size: 0.9rem; margin-bottom: 12px;">Upload your Excel file with book inventory. Required columns: Book ID, ISBN, Title, Author, Subject, Copies</p>
+                    
+                    <div class="form-group">
+                        <label>Upload Book Database (Excel)</label>
+                        <input type="file" id="bookDatabaseFile" accept=".xlsx,.xlsm,.xls">
+                    </div>
+
+                    <button class="btn-success" onclick="importBookDatabase()">Import Books</button>
+                    <div id="importMessage" class="message" style="margin-top: 10px;"></div>
+                </div>
+
+                <div style="background: var(--neutral-light); padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">👥 Manage Users</h3>
+                    
+                    <div id="usersList" style="margin-bottom: 15px;">
+                        <!-- Users will be displayed here -->
+                    </div>
+
+                    <button class="btn-primary" onclick="resetAllData()">⚠️ Reset All Data (Careful!)</button>
+                </div>
+
+                <div style="background: var(--neutral-light); padding: 15px; border-radius: 4px; margin: 15px 0;">
+                    <h3 style="color: var(--primary); margin-bottom: 10px;">💾 Export/Backup</h3>
+                    
+                    <button class="btn-warning" onclick="exportData()">Export All Data as JSON</button>
+                    <button class="btn-primary" onclick="downloadDatabaseBackup()">Download Backup</button>
+                </div>
+            </div>
+
+            <div id="dataMessage" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        // DEFAULT USERS
+        const DEFAULT_USERS = [
+            { id: 'librarian', name: 'Librarian', pin: '1234' },
+            { id: 'helper1', name: 'Helper 1', pin: '5678' },
+            { id: 'helper2', name: 'Helper 2', pin: '9012' }
+        ];
+
+        let currentUser = null;
+        let currentQRData = null;
+        let batchStudents = [];
+        let scanningActive = false;
+
+        // INITIALIZE APP
+        function initApp() {
+            loadUsers();
+            loadDatabases();
+            generateDefaultData();
+        }
+
+        function loadUsers() {
+            const userSelect = document.getElementById('userSelect');
+            userSelect.innerHTML = DEFAULT_USERS.map(user => `
+                <button class="user-btn" onclick="selectUser('${user.id}')" id="user-${user.id}">
+                    ${user.name}
+                </button>
+            `).join('');
+        }
+
+        function selectUser(userId) {
+            document.querySelectorAll('.user-btn').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`user-${userId}`).classList.add('selected');
+            document.getElementById('pinInput').focus();
+        }
+
+        function login() {
+            const userBtns = document.querySelectorAll('.user-btn.selected');
+            if (userBtns.length === 0) {
+                showMessage('Please select a user', 'error', 'loginMessage');
+                return;
+            }
+
+            const userId = userBtns[0].id.replace('user-', '');
+            const user = DEFAULT_USERS.find(u => u.id === userId);
+            const pin = document.getElementById('pinInput').value;
+
+            if (pin === user.pin) {
+                currentUser = user;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'flex';
+                document.getElementById('userDisplay').textContent = `👤 ${user.name}`;
+                loadDatabases();
+                switchTab('barcode', document.querySelector('.tab-btn'));
+            } else {
+                showMessage('Invalid PIN', 'error', 'loginMessage');
+                document.getElementById('pinInput').value = '';
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('pinInput').value = '';
+            stopScanning();
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            if (btn) btn.classList.add('active');
+            stopScanning();
+        }
+
+        function switchBarcodeMode(mode) {
+            document.getElementById('manualMode').style.display = mode === 'manual' ? 'block' : 'none';
+            document.getElementById('batchMode').style.display = mode === 'batch' ? 'block' : 'none';
+            document.getElementById('manualModeBtn').classList.toggle('active', mode === 'manual');
+            document.getElementById('batchModeBtn').classList.toggle('active', mode === 'batch');
+        }
+
+        function switchLibraryMode(mode) {
+            document.getElementById('scanMode').style.display = mode === 'scan' ? 'block' : 'none';
+            document.getElementById('issueMode').style.display = mode === 'issue' ? 'block' : 'none';
+            document.getElementById('returnMode').style.display = mode === 'return' ? 'block' : 'none';
+            document.getElementById('searchMode').style.display = mode === 'search' ? 'block' : 'none';
+            document.getElementById('historyMode').style.display = mode === 'history' ? 'block' : 'none';
+            document.getElementById('overdueMode').style.display = mode === 'overdue' ? 'block' : 'none';
+            document.getElementById('reportsMode').style.display = mode === 'reports' ? 'block' : 'none';
+        }
+
+        // BARCODE GENERATION
+        function generateQRCode() {
+            const admission = document.getElementById('admission').value.trim();
+            const name = document.getElementById('studentName').value.trim();
+            const klass = document.getElementById('class').value;
+            const section = document.getElementById('section').value;
+
+            if (!admission || !name || !klass || !section) {
+                showMessage('Please fill all fields', 'error', 'barcodeMessage');
+                return;
+            }
+
+            const qrData = `ADM:${admission}|NAME:${name}|CLASS:${klass}|SECTION:${section}`;
+            currentQRData = { admission, name, klass, section, qrData };
+
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), {
+                text: qrData,
+                width: 200,
+                height: 200,
+                colorDark: '#1a3a52',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('barcodePreview').style.display = 'block';
+            document.getElementById('barcodeInfo').innerHTML = `
+                <strong>${name}</strong><br>
+                Admission: ${admission}<br>
+                Class ${klass} - Section ${section}
+            `;
+
+            const students = JSON.parse(localStorage.getItem('students') || '{}');
+            students[admission] = { admission, name, klass, section, qrData };
+            localStorage.setItem('students', JSON.stringify(students));
+
+            showMessage('QR Code generated!', 'success', 'barcodeMessage');
+        }
+
+        function downloadBarcode() {
+            if (!currentQRData) {
+                showMessage('Generate a QR code first', 'error', 'barcodeMessage');
+                return;
+            }
+
+            const canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) return;
+
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = `Barcode_${currentQRData.admission}_${currentQRData.name.replace(/\s+/g, '_')}.png`;
+            link.click();
+        }
+
+        function processExcelBatch() {
+            const file = document.getElementById('excelFile').files[0];
+            if (!file) {
+                showMessage('Please select an Excel file', 'error', 'barcodeMessage');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    batchStudents = [];
+                    let errors = [];
+
+                    rows.forEach((row, index) => {
+                        const admission = row['admission_number'] || row['Admission Number'] || Object.values(row)[0];
+                        const name = row['full_name'] || row['Full Name'] || Object.values(row)[1];
+                        const klass = row['class'] || row['Class'] || Object.values(row)[2];
+                        const section = row['section'] || row['Section'] || Object.values(row)[3];
+
+                        if (admission && name && klass && section) {
+                            batchStudents.push({ 
+                                admission: String(admission).trim(), 
+                                name: String(name).trim(), 
+                                klass: String(klass).trim(), 
+                                section: String(section).trim() 
+                            });
+                        } else {
+                            errors.push(`Row ${index + 2}: Missing required fields`);
+                        }
+                    });
+
+                    document.getElementById('batchTableBody').innerHTML = batchStudents.map(s => `
+                        <tr>
+                            <td>${s.name}</td>
+                            <td>Class ${s.klass}</td>
+                            <td>${s.section}</td>
+                            <td><span class="status-badge status-returned">Ready</span></td>
+                        </tr>
+                    `).join('');
+
+                    document.getElementById('batchList').style.display = 'block';
+                    showMessage(`Successfully loaded ${batchStudents.length} students`, 'success', 'barcodeMessage');
+
+                    const students = JSON.parse(localStorage.getItem('students') || '{}');
+                    batchStudents.forEach(s => {
+                        students[s.admission] = { 
+                            ...s, 
+                            qrData: `ADM:${s.admission}|NAME:${s.name}|CLASS:${s.klass}|SECTION:${s.section}` 
+                        };
+                    });
+                    localStorage.setItem('students', JSON.stringify(students));
+                } catch (err) {
+                    showMessage('Error reading Excel file: ' + err.message, 'error', 'barcodeMessage');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        async function downloadAllBarcodes() {
+            if (batchStudents.length === 0) {
+                showMessage('No students to download', 'error', 'barcodeMessage');
+                return;
+            }
+
+            const zip = new JSZip();
+            
+            for (const student of batchStudents) {
+                const qrData = `ADM:${student.admission}|NAME:${student.name}|CLASS:${student.klass}|SECTION:${student.section}`;
+                const tempDiv = document.createElement('div');
+                
+                new QRCode(tempDiv, {
+                    text: qrData,
+                    width: 200,
+                    height: 200,
+                    colorDark: '#1a3a52',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const canvas = tempDiv.querySelector('canvas');
+                const imageData = canvas.toDataURL('image/png').split(',')[1];
+                const filename = `Barcode_${student.admission}_${student.name.replace(/\s+/g, '_')}.png`;
+                zip.file(filename, imageData, { base64: true });
+            }
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Student_Barcodes.zip';
+            link.click();
+
+            showMessage(`Downloaded ${batchStudents.length} barcodes`, 'success', 'barcodeMessage');
+        }
+
+        // CAMERA SCANNING
+        async function startScanning() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                video.play();
+                scanningActive = true;
+
+                document.getElementById('stopScanBtn').style.display = 'inline-block';
+
+                const codeReader = new ZXing.BrowserMultiFormatReader();
+                const result = await codeReader.decodeFromVideoElement(video);
+                
+                if (result) {
+                    processScanResult(result.getText());
+                    stopScanning();
+                }
+            } catch (err) {
+                showMessage('Camera access denied or device not supported', 'error', 'libraryMessage');
+            }
+        }
+
+        function stopScanning() {
+            scanningActive = false;
+            const video = document.getElementById('video');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+            }
+            document.getElementById('stopScanBtn').style.display = 'none';
+        }
+
+        function processScanResult(qrData) {
+            try {
+                const parts = qrData.split('|');
+                const admission = parts[0].replace('ADM:', '');
+                const name = parts[1].replace('NAME:', '');
+
+                document.getElementById('issueStudentId').value = admission;
+                document.getElementById('issueStudentName').value = name;
+
+                document.getElementById('scanResult').style.display = 'block';
+                document.getElementById('scanResult').innerHTML = `
+                    <strong>✅ Student Scanned:</strong><br>
+                    Name: ${name}<br>
+                    Admission: ${admission}
+                `;
+
+                switchLibraryMode('issue');
+                showMessage('Student scanned successfully', 'success', 'libraryMessage');
+            } catch (err) {
+                showMessage('Invalid barcode format', 'error', 'libraryMessage');
+            }
+        }
+
+        // BOOK MANAGEMENT
+        function searchBooks() {
+            const query = document.getElementById('bookSearch').value.toLowerCase();
+            if (query.length < 2) {
+                document.getElementById('bookSearchResults').classList.remove('show');
+                return;
+            }
+
+            const books = JSON.parse(localStorage.getItem('books') || '{}');
+            const results = Object.values(books).filter(b => 
+                b.title.toLowerCase().includes(query) || 
+                b.bookId.toLowerCase().includes(query)
+            );
+
+            const resultsDiv = document.getElementById('bookSearchResults');
+            resultsDiv.innerHTML = results.map(b => `
+                <div class="search-item" onclick="selectBook('${b.bookId}', '${b.title}')">
+                    <strong>${b.title}</strong><br>
+                    <small>${b.author} | ID: ${b.bookId}</small>
+                </div>
+            `).join('');
+
+            resultsDiv.classList.add('show');
+        }
+
+        function selectBook(bookId, title) {
+            document.getElementById('issueBookId').value = bookId;
+            document.getElementById('bookSearch').value = title;
+            document.getElementById('bookSearchResults').classList.remove('show');
+
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 14);
+            document.getElementById('issueDueDate').value = dueDate.toISOString().split('T')[0];
+        }
+
+        function issueBook() {
+            const studentId = document.getElementById('issueStudentId').value;
+            const studentName = document.getElementById('issueStudentName').value;
+            const bookId = document.getElementById('issueBookId').value;
+            const dueDate = document.getElementById('issueDueDate').value;
+
+            if (!studentId || !studentName || !bookId || !dueDate) {
+                showMessage('Please fill all fields', 'error', 'issueMessage');
+                return;
+            }
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            const txnId = 'TXN' + Date.now();
+
+            transactions[txnId] = {
+                txnId,
+                studentId,
+                studentName,
+                bookId,
+                issueDate: new Date().toISOString().split('T')[0],
+                dueDate,
+                returnDate: null,
+                status: 'borrowed',
+                librarian: currentUser.name
+            };
+
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            showMessage(`✅ Book issued to ${studentName}. Due: ${dueDate}`, 'success', 'issueMessage');
+            document.getElementById('issueBookId').value = '';
+            document.getElementById('bookSearch').value = '';
+        }
+
+        function returnBook() {
+            const studentId = document.getElementById('returnStudentId').value;
+            const bookId = document.getElementById('returnBookId').value;
+
+            if (!studentId || !bookId) {
+                showMessage('Please enter student and book ID', 'error', 'returnMessage');
+                return;
+            }
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            const txn = Object.values(transactions).find(t => 
+                t.studentId === studentId && t.bookId === bookId && t.status === 'borrowed'
+            );
+
+            if (!txn) {
+                showMessage('No active borrowing record found', 'error', 'returnMessage');
+                return;
+            }
+
+            txn.returnDate = new Date().toISOString().split('T')[0];
+            txn.status = 'returned';
+
+            const dueDate = new Date(txn.dueDate);
+            const returnDate = new Date(txn.returnDate);
+            const daysLate = returnDate > dueDate ? Math.floor((returnDate - dueDate) / (1000 * 60 * 60 * 24)) : 0;
+
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+
+            document.getElementById('returnResult').style.display = 'block';
+            document.getElementById('returnResult').innerHTML = `
+                <strong>✅ Book Returned:</strong><br>
+                Student: ${txn.studentName}<br>
+                Due Date: ${txn.dueDate}<br>
+                Return Date: ${txn.returnDate}<br>
+                ${daysLate > 0 ? `<span style="color: var(--danger);">⚠️ ${daysLate} days overdue</span>` : '✅ On time'}
+            `;
+
+            showMessage('Book returned successfully', 'success', 'returnMessage');
+        }
+
+        function showStudentHistory() {
+            const studentId = document.getElementById('historyStudentId').value;
+            if (!studentId) {
+                showMessage('Please enter student ID', 'error', 'libraryMessage');
+                return;
+            }
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            const studentTxns = Object.values(transactions).filter(t => t.studentId === studentId);
+
+            const html = `
+                <h3>${studentId} - Borrowing History</h3>
+                <table>
+                    <thead>
+                        <tr><th>Book ID</th><th>Issue Date</th><th>Due Date</th><th>Return Date</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        ${studentTxns.map(t => `
+                            <tr>
+                                <td>${t.bookId}</td>
+                                <td>${t.issueDate}</td>
+                                <td>${t.dueDate}</td>
+                                <td>${t.returnDate || '-'}</td>
+                                <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('historyResult').innerHTML = html;
+        }
+
+        function showOverdueBooks() {
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            const today = new Date();
+            
+            const overdueBooks = Object.values(transactions).filter(t => {
+                if (t.status !== 'borrowed') return false;
+                return new Date(t.dueDate) < today;
+            });
+
+            const html = overdueBooks.length > 0 ? `
+                <table>
+                    <thead>
+                        <tr><th>Student</th><th>Book ID</th><th>Due Date</th><th>Days Overdue</th></tr>
+                    </thead>
+                    <tbody>
+                        ${overdueBooks.map(t => {
+                            const daysOverdue = Math.floor((today - new Date(t.dueDate)) / (1000 * 60 * 60 * 24));
+                            return `
+                                <tr>
+                                    <td>${t.studentName}</td>
+                                    <td>${t.bookId}</td>
+                                    <td>${t.dueDate}</td>
+                                    <td><span style="color: var(--danger); font-weight: bold;">${daysOverdue}</span></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            ` : '<p style="color: var(--success); font-weight: bold;">✅ No overdue books!</p>';
+
+            document.getElementById('overdueResult').innerHTML = html;
+        }
+
+        // REPORTS
+        async function generatePDFReport() {
+            const reportType = document.getElementById('reportType').value;
+            if (!reportType) {
+                showMessage('Please select a report type', 'error', 'libraryMessage');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.setFontSize(16);
+            doc.text('PM SHRI KV Hinoo - Library Report', 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 30);
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            let data = [];
+
+            if (reportType === 'issued') {
+                data = Object.values(transactions).filter(t => t.status === 'borrowed');
+                doc.text('Books Currently Issued:', 20, 45);
+                doc.autoTable({
+                    head: [['Student', 'Book ID', 'Issue Date', 'Due Date']],
+                    body: data.map(t => [t.studentName, t.bookId, t.issueDate, t.dueDate]),
+                    startY: 50
+                });
+            } else if (reportType === 'overdue') {
+                const today = new Date();
+                data = Object.values(transactions).filter(t => 
+                    t.status === 'borrowed' && new Date(t.dueDate) < today
+                );
+                doc.text('Overdue Books:', 20, 45);
+                doc.autoTable({
+                    head: [['Student', 'Book ID', 'Due Date', 'Days Late']],
+                    body: data.map(t => {
+                        const days = Math.floor((today - new Date(t.dueDate)) / (1000 * 60 * 60 * 24));
+                        return [t.studentName, t.bookId, t.dueDate, days];
+                    }),
+                    startY: 50
+                });
+            }
+
+            doc.save(`Library_Report_${reportType}_${new Date().toISOString().split('T')[0]}.pdf`);
+            showMessage('PDF report generated!', 'success', 'libraryMessage');
+        }
+
+        function generateExcelReport() {
+            const reportType = document.getElementById('reportType').value;
+            if (!reportType) {
+                showMessage('Please select a report type', 'error', 'libraryMessage');
+                return;
+            }
+
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '{}');
+            const data = Object.values(transactions);
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Transactions');
+            XLSX.writeFile(wb, `Library_Report_${reportType}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+            showMessage('Excel report generated!', 'success', 'libraryMessage');
+        }
+
+        // DATA MANAGEMENT
+        function importBookDatabase() {
+            const file = document.getElementById('bookDatabaseFile').files[0];
+            if (!file) {
+                showMessage('Please select a file', 'error', 'importMessage');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+                    const books = {};
+                    rows.forEach(row => {
+                        books[row['Book ID'] || row.bookId] = {
+                            bookId: row['Book ID'] || row.bookId,
+                            isbn: row.ISBN || row.isbn,
+                            title: row.Title || row.title,
+                            author: row.Author || row.author,
+                            subject: row.Subject || row.subject,
+                            copies: row.Copies || row.copies
+                        };
+                    });
+
+                    localStorage.setItem('books', JSON.stringify(books));
+                    showMessage(`✅ Imported ${Object.keys(books).length} books!`, 'success', 'importMessage');
+                } catch (err) {
+                    showMessage('Error importing file: ' + err.message, 'error', 'importMessage');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function generateDefaultData() {
+            const books = localStorage.getItem('books');
+            if (!books) {
+                const defaultBooks = {
+                    'B001': { bookId: 'B001', isbn: '9788172764395', title: 'Mahabharata', author: 'Vyasa', subject: 'Indian Literature', copies: 3 },
+                    'B002': { bookId: 'B002', isbn: '9788172764399', title: 'Ramayana', author: 'Valmiki', subject: 'Indian Literature', copies: 2 },
+                    'B003': { bookId: 'B003', isbn: '9780062316097', title: 'To Kill a Mockingbird', author: 'Harper Lee', subject: 'English Literature', copies: 4 }
+                };
+                localStorage.setItem('books', JSON.stringify(defaultBooks));
+            }
+        }
+
+        function loadDatabases() {
+            // Silent load
+        }
+
+        function resetAllData() {
+            if (confirm('⚠️ This will delete ALL data! Are you sure?')) {
+                localStorage.clear();
+                generateDefaultData();
+                showMessage('All data reset', 'success', 'dataMessage');
+            }
+        }
+
+        function exportData() {
+            const data = {
+                books: JSON.parse(localStorage.getItem('books') || '{}'),
+                students: JSON.parse(localStorage.getItem('students') || '{}'),
+                transactions: JSON.parse(localStorage.getItem('transactions') || '{}')
+            };
+
+            const link = document.createElement('a');
+            link.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+            link.download = `library_data_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+
+            showMessage('Data exported!', 'success', 'dataMessage');
+        }
+
+        function downloadDatabaseBackup() {
+            exportData();
+        }
+
+        function showMessage(msg, type, elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.textContent = msg;
+            el.className = `message show ${type}`;
+
+            if (type !== 'error') {
+                setTimeout(() => el.classList.remove('show'), 4000);
+            }
+        }
+
+        // INITIALIZE
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
